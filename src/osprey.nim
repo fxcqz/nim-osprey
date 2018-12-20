@@ -2,6 +2,8 @@ import strutils
 import nimx / [ window, text_field, layout, formatted_text, types,
                 button, scroll_view ]
 
+import matrix
+
 proc startApp() =
   var wnd = newWindow(newRect(40, 40, 800, 600))
   wnd.title = "Opsrey Matrix Client"
@@ -20,7 +22,6 @@ proc startApp() =
       - TextField as body:
         editable: false
         multiline: true
-        hasBezel: true
         width == super.width
     - TextField:
       top == prev.bottom + 5
@@ -40,10 +41,63 @@ proc startApp() =
     "<foo> yeah dunno why im bothering",
     "<foo> scrolling is hard af too",
     "<bar> use a deque idiot",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
+    "<other> spam",
   ]
   var mainText = newFormattedText(messages.join("\n"))
   mainText.verticalAlignment = vaBottom
   body.formattedText = mainText
 
+
 runApplication:
   startApp()
+
