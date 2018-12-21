@@ -1,3 +1,8 @@
+# Osprey Copyright (C) 2018 M. Rawcliffe
+# This program comes with ABSOLUTELY NO WARRANTY;
+# This is free software, and you are welcome to redistribute it
+# under certain conditions; see LICENSE.txt for details.
+
 import strutils
 import gintro / [ gtk, glib, gobject, gio ]
 import matrix
@@ -57,4 +62,6 @@ proc main =
 
 when isMainModule:
   main()
+
+
 
