@@ -10,8 +10,10 @@ import threadpool
 import gintro / [ gtk, glib, gobject, gio ]
 import matrix
 
-var chan: Channel[string]
-var textChatData: string
+var
+  chan: Channel[string]
+  sendChan: Channel[string]
+  textChatData: string
 
 proc initConnection =
   # start the matrix connection on another thread
@@ -24,12 +26,18 @@ proc initConnection =
   chan.send(messagesToLines(initialMessages))
 
   while true:
+    # send msgs on the chan (prioritise this over receiving)
+    let (res, msg) = sendChan.tryRecv()
+    if res:
+      connection.sendMessage(msg)
+
     # TODO perhaps this should tie in to the timeout and not run
     # as often
     let data = connection.sync()
     let messages = connection.extractMessages(data)
     if messages.len > 0:
       chan.send(messagesToLines(messages))
+
     sleep(0)
 
 
@@ -43,6 +51,11 @@ proc updateChat(w: TextView): bool =
     buf.setText(textChatData, textChatData.len)
 
   return SOURCE_CONTINUE
+
+
+proc sendMessage(b: Button; w: Entry) =
+  sendChan.send(w.getText())
+  w.setText("")
 
 
 proc appActivate(app: Application) =
@@ -60,7 +73,7 @@ proc appActivate(app: Application) =
   roomTitle.setXalign(0)
   # header css
   let cssProvider = newCssProvider()
-  discard cssProvider.loadFromData("label { font-size: 18pt; padding: .2em }")
+  discard cssProvider.loadFromData("label { font-size: 18pt; padding: .2em; color: #0000ff }")
   let styleContext = roomTitle.getStyleContext
   addProvider(styleContext, cssProvider, STYLE_PROVIDER_PRIORITY_USER)
 
@@ -85,6 +98,7 @@ proc appActivate(app: Application) =
   boxInput.packStart(inputText, true, true, 0)
 
   let inputButton = newButton("Send")
+  inputButton.connect("clicked", sendMessage, inputText)
   boxInput.packStart(inputButton, false, false, 0)
 
   box.packStart(boxInput, false, false, 0)
@@ -96,7 +110,10 @@ proc appActivate(app: Application) =
 
 proc main =
   chan.open()
-  defer: chan.close()
+  sendChan.open()
+  defer:
+    chan.close()
+    sendChan.close()
 
   let app = newApplication("re.b5.osprey")
   connect(app, "activate", appActivate)
