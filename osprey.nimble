@@ -12,3 +12,7 @@ bin           = @["osprey"]
 
 requires "nim >= 0.19.0"
 requires "gintro"
+
+
+task run, "Run the program":
+  exec "nim c -r -d:ssl src/osprey.nim"
