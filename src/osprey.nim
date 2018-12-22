@@ -5,10 +5,31 @@
 
 import strutils
 import json
+import threadpool
 import gintro / [ gtk, glib, gobject, gio ]
 import matrix
 
+var chan: Channel[string]
+
+proc initConnection =
+  # start the matrix connection on another thread
+  let config: JsonNode = parseFile("config.json")
+  var connection: MatrixClient = newMatrixClient(config)
+  connection.login()
+  connection.join()
+  let initialData = connection.sync()
+  chan.send($initialData)
+
+  while true:
+    discard
+
+
 proc appActivate(app: Application) =
+  chan.open()
+  defer: chan.close()
+
+  spawn initConnection()
+
   let window = newApplicationWindow(app)
   window.title = "Osprey Client"
   window.defaultSize = (640, 480)
@@ -37,14 +58,10 @@ proc appActivate(app: Application) =
   chatText.setCanFocus(false)
   chatScroller.add(chatText)
 
-  let config: JsonNode = parseFile("config.json")
-  var connection: MatrixClient = newMatrixClient(config)
-  connection.login()
-  connection.join()
-  let data: string = $connection.sync()
-
   let buf = chatText.getBuffer()
-  buf.setText(data, len(data))
+  let s = chan.recv()
+  buf.setText(s, s.len)
+
   box.packStart(chatScroller, true, true, 0)
 
   # text entry
