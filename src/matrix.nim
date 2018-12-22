@@ -209,7 +209,7 @@ proc sync*(self: var MatrixClient): JsonNode {.raises: [].} =
   return response
 
 proc sendMessage*(self: var MatrixClient; message: string;
-                 mType: string = "m.text") {.raises: [].} =
+                  mType: string = "m.text") {.raises: [].} =
   # TODO this proc needs to be changed for anything other that
   # plain text messages
   let data = %*{

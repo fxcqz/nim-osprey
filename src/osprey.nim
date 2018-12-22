@@ -7,7 +7,7 @@ import os
 import strutils
 import json
 import threadpool
-import gintro / [ gtk, glib, gobject, gio ]
+import gintro / [ gtk, glib, gobject, gio, gdk ]
 import matrix
 
 var
@@ -53,9 +53,13 @@ proc updateChat(w: TextView): bool =
   return SOURCE_CONTINUE
 
 
-proc sendMessage(b: Button; w: Entry) =
+proc sendMessage(w: Entry) =
   sendChan.send(w.getText())
   w.setText("")
+
+proc onSendMessage(b: Button; w: Entry) = sendMessage(w)
+
+proc onSendMessage(w: Entry) = sendMessage(w)
 
 
 proc appActivate(app: Application) =
@@ -95,10 +99,13 @@ proc appActivate(app: Application) =
   let boxInput = newBox(Orientation.horizontal, 0)
 
   let inputText = newEntry()
+  inputText.addEvents(cast[EventMask](EventFlag.buttonRelease))
+  inputText.connect("activate", onSendMessage)
+
   boxInput.packStart(inputText, true, true, 0)
 
   let inputButton = newButton("Send")
-  inputButton.connect("clicked", sendMessage, inputText)
+  inputButton.connect("clicked", onSendMessage, inputText)
   boxInput.packStart(inputButton, false, false, 0)
 
   box.packStart(boxInput, false, false, 0)
