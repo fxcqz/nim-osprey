@@ -4,6 +4,7 @@
 # under certain conditions; see LICENSE.txt for details.
 
 import strutils
+import json
 import gintro / [ gtk, glib, gobject, gio ]
 import matrix
 
@@ -36,8 +37,14 @@ proc appActivate(app: Application) =
   chatText.setCanFocus(false)
   chatScroller.add(chatText)
 
+  let config: JsonNode = parseFile("config.json")
+  var connection: MatrixClient = newMatrixClient(config)
+  connection.login()
+  connection.join()
+  let data: string = $connection.sync()
+
   let buf = chatText.getBuffer()
-  buf.setText("<foo> yo\n".repeat(100), 900)
+  buf.setText(data, len(data))
   box.packStart(chatScroller, true, true, 0)
 
   # text entry

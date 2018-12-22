@@ -43,11 +43,12 @@ proc newMatrixConfig(config: JsonNode): MatrixConfig {.raises: [KeyError].} =
     room:     config["room"].getStr,
   )
 
-proc newMatrixClient(jconfig: JsonNode): MatrixClient {.raises: [].} =
-  let client = newHttpClient()
-  client.headers = newHttpHeaders({"Content-Type": "application/json"})
-
+proc newMatrixClient*(jconfig: JsonNode): MatrixClient {.raises: [].} =
   try:
+    # newHttpClient can raise Exception when compiling with -d:ssl
+    let client = newHttpClient()
+    client.headers = newHttpHeaders({"Content-Type": "application/json"})
+
     let config = newMatrixConfig(jconfig)
     return MatrixClient(client: client, config: config)
   except:
@@ -189,7 +190,7 @@ proc sync*(self: var MatrixClient): JsonNode {.raises: [].} =
 
   return response
 
-proc sendMessage(self: var MatrixClient; message: string;
+proc sendMessage*(self: var MatrixClient; message: string;
                  mType: string = "m.text") {.raises: [].} =
   # TODO this proc needs to be changed for anything other that
   # plain text messages
