@@ -15,4 +15,4 @@ requires "gintro"
 
 
 task run, "Run the program":
-  exec "nim c -r -d:ssl src/osprey.nim"
+  exec "nim c -r --threads:on -d:ssl src/osprey.nim"
