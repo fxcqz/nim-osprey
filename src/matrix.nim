@@ -25,15 +25,13 @@ type
     config*: MatrixConfig
     accessToken: string
     userID: string
-    roomID: string
+    roomID*: string
     nextBatch: string
     txID: int
 
   Message = tuple[body: string; sender: string; eventID: string]
   ParamT = TableRef[string, string]
 
-
-let NULLJSON: JsonNode = %*{}
 
 proc newMatrixConfig(config: JsonNode): MatrixConfig {.raises: [KeyError].} =
   MatrixConfig(
@@ -106,7 +104,7 @@ proc POST(self: MatrixClient; endpoint: string; data: JsonNode;
            ": ", getCurrentExceptionMsg())
     except Exception:
       discard
-    return NULLJSON
+    return %*{}
 
 proc GET(self: MatrixClient; endpoint: string;
          params: Option[ParamT] = none(ParamT);
@@ -121,7 +119,7 @@ proc GET(self: MatrixClient; endpoint: string;
            ": ", getCurrentExceptionMsg())
     except Exception:
       discard
-    return NULLJSON
+    return %*{}
 
 proc PUT(self: MatrixClient; endpoint: string; data: JsonNode;
          params: Option[ParamT] = none(ParamT);
@@ -138,7 +136,7 @@ proc PUT(self: MatrixClient; endpoint: string; data: JsonNode;
            ": ", getCurrentExceptionMsg())
     except Exception:
       discard
-    return NULLJSON
+    return %*{}
 
 
 proc login*(self: var MatrixClient) {.raises: [].} =
@@ -160,8 +158,8 @@ proc login*(self: var MatrixClient) {.raises: [].} =
       discard
     quit(-1)
 
-proc join*(self: var MatrixClient) {.raises: [].} =
-  let response: JsonNode = self.POST(&"join/{encodeUrl(self.config.room)}", NULLJSON)
+proc join*(self: var MatrixClient) {.gcsafe, raises: [].} =
+  let response: JsonNode = self.POST(&"join/{encodeUrl(self.config.room)}", %*{})
   try:
     self.roomID = response["room_id"].getStr
   except KeyError:
