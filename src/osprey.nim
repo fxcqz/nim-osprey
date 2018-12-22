@@ -3,6 +3,7 @@
 # This is free software, and you are welcome to redistribute it
 # under certain conditions; see LICENSE.txt for details.
 
+import os
 import strutils
 import json
 import threadpool
@@ -21,7 +22,7 @@ proc initConnection =
   chan.send($initialData)
 
   while true:
-    discard
+    sleep(0)
 
 
 proc appActivate(app: Application) =
