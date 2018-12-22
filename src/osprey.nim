@@ -11,6 +11,7 @@ import gintro / [ gtk, glib, gobject, gio ]
 import matrix
 
 var chan: Channel[string]
+var textChatData: string
 
 proc initConnection =
   # start the matrix connection on another thread
@@ -23,6 +24,8 @@ proc initConnection =
   chan.send(messagesToLines(initialMessages))
 
   while true:
+    # TODO perhaps this should tie in to the timeout and not run
+    # as often
     let data = connection.sync()
     let messages = connection.extractMessages(data)
     if messages.len > 0:
@@ -31,11 +34,13 @@ proc initConnection =
 
 
 proc updateChat(w: TextView): bool =
-  let buf = w.getBuffer()
   let (res, msg) = chan.tryRecv()
   if res:
-    #let content = buf.getText() & "\n" & msg
-    buf.setText(msg, msg.len)
+    # TODO this is super inefficient, and we might not want to use a
+    # TextView anyway
+    let buf = w.getBuffer()
+    textChatData &= "\n" & msg
+    buf.setText(textChatData, textChatData.len)
 
   return SOURCE_CONTINUE
 
