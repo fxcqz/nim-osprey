@@ -60,6 +60,26 @@ proc newMatrixClient*(jconfig: JsonNode): MatrixClient {.raises: [].} =
 proc address(self: MatrixClient): string {.raises: [].} =
   self.config.address
 
+proc extractMessages*(self: MatrixClient; data: JsonNode): seq[Message] {.raises: [].} =
+  try:
+    let roomData: JsonNode = data["rooms"]["join"]
+    if self.roomID in roomData:
+      let events: JsonNode = roomData[self.roomID]["timeline"]["events"]
+      for e in events:
+        if "body" in e["content"]:
+          result.add((
+            e["content"]["body"].getStr,
+            e["sender"].getStr,
+            e["event_id"].getStr,
+          ))
+  except KeyError:
+    discard
+
+proc messagesToLines*(messages: seq[Message]): string {.raises: [].} =
+  for message in messages:
+    result &= "<" & message.sender & "> " & message.body & "\n"
+  result.strip(chars = {'\n'})
+
 proc makeParams(params: Option[ParamT]): string =
   if params.isNone:
     return ""

@@ -19,16 +19,28 @@ proc initConnection =
   connection.login()
   connection.join()
   let initialData = connection.sync()
-  chan.send($initialData)
+  let initialMessages = connection.extractMessages(initialData)
+  chan.send(messagesToLines(initialMessages))
 
   while true:
+    let data = connection.sync()
+    let messages = connection.extractMessages(data)
+    if messages.len > 0:
+      chan.send(messagesToLines(messages))
     sleep(0)
 
 
-proc appActivate(app: Application) =
-  chan.open()
-  defer: chan.close()
+proc updateChat(w: TextView): bool =
+  let buf = w.getBuffer()
+  let (res, msg) = chan.tryRecv()
+  if res:
+    #let content = buf.getText() & "\n" & msg
+    buf.setText(msg, msg.len)
 
+  return SOURCE_CONTINUE
+
+
+proc appActivate(app: Application) =
   spawn initConnection()
 
   let window = newApplicationWindow(app)
@@ -59,10 +71,6 @@ proc appActivate(app: Application) =
   chatText.setCanFocus(false)
   chatScroller.add(chatText)
 
-  let buf = chatText.getBuffer()
-  let s = chan.recv()
-  buf.setText(s, s.len)
-
   box.packStart(chatScroller, true, true, 0)
 
   # text entry
@@ -76,10 +84,15 @@ proc appActivate(app: Application) =
 
   box.packStart(boxInput, false, false, 0)
 
+  discard timeoutAdd(1000, updateChat, chatText)
+
   window.add(box)
   showAll(window)
 
 proc main =
+  chan.open()
+  defer: chan.close()
+
   let app = newApplication("re.b5.osprey")
   connect(app, "activate", appActivate)
   discard run(app)
@@ -87,6 +100,3 @@ proc main =
 
 when isMainModule:
   main()
-
-
-
