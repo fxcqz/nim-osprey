@@ -41,6 +41,11 @@ proc newMatrixConfig(config: JsonNode): MatrixConfig {.raises: [KeyError].} =
     room:     config["room"].getStr,
   )
 
+proc roomName*(self: MatrixConfig): string =
+  if self.room.len == 0:
+    return ""
+  return self.room.split(":")[0][1 .. ^1]
+
 proc newMatrixClient*(jconfig: JsonNode): MatrixClient {.raises: [].} =
   try:
     # newHttpClient can raise Exception when compiling with -d:ssl

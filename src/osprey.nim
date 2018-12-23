@@ -19,6 +19,8 @@ proc initConnection =
   # start the matrix connection on another thread
   let config: JsonNode = parseFile("config.json")
   var connection: MatrixClient = newMatrixClient(config)
+  # send the room name back to the ui
+  chan.send(connection.config.roomName())
   connection.login()
   connection.join()
   let initialData = connection.sync()
@@ -93,7 +95,7 @@ proc appActivate(app: Application) =
   chatScroller.add(chatText)
 
   # TODO should probably do something with the page id
-  discard notebook.appendPage(chatScroller, newLabel("sett"))
+  discard notebook.appendPage(chatScroller, newLabel(chan.recv()))
 
   box.packStart(notebook, true, true, 0)
 
