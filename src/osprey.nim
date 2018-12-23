@@ -47,7 +47,7 @@ proc updateChat(w: TextView): bool =
     # TODO this is super inefficient, and we might not want to use a
     # TextView anyway
     let buf = w.getBuffer()
-    textChatData &= "\n" & msg
+    textChatData &= msg & "\n"
     buf.setText(textChatData, textChatData.len)
 
   return SOURCE_CONTINUE
@@ -65,9 +65,36 @@ proc onSendMessage(w: Entry) = sendMessage(w)
 proc appActivate(app: Application) =
   spawn initConnection()
 
+  let cssProvider = newCssProvider()
+  discard cssProvider.loadFromData("""
+    window { background-color: #111111; color: #ffffff }
+    label { font-size: 18pt; padding-left: .5em; color: orange }
+    textview.view text {
+      background-color: #111111;
+      color: #EAEAEA;
+      font-size: 12pt;
+    }
+    entry {
+      padding: 5px;
+      background-color: #111111;
+      border: 1px #333333 solid;
+      color: #EAEAEA;
+    }
+    button {
+      background-image: none;
+      border-image: none;
+      padding: 5px;
+      background-color: #111111;
+      border: 0;
+      color: #EAEAEA;
+    }
+  """)
+
   let window = newApplicationWindow(app)
   window.title = "Osprey Client"
   window.defaultSize = (640, 480)
+  addProvider(window.getStyleContext, cssProvider,
+              STYLE_PROVIDER_PRIORITY_USER)
 
   # main layout box
   let box = newBox(Orientation.vertical, 10)
@@ -75,11 +102,10 @@ proc appActivate(app: Application) =
   # header
   let roomTitle = newLabel("Sett")
   roomTitle.setXalign(0)
+
   # header css
-  let cssProvider = newCssProvider()
-  discard cssProvider.loadFromData("label { font-size: 18pt; padding: .2em; color: #0000ff }")
-  let styleContext = roomTitle.getStyleContext
-  addProvider(styleContext, cssProvider, STYLE_PROVIDER_PRIORITY_USER)
+  addProvider(roomTitle.getStyleContext, cssProvider,
+              STYLE_PROVIDER_PRIORITY_USER)
 
   box.packStart(roomTitle, false, false, 0)
   # end header
@@ -91,6 +117,8 @@ proc appActivate(app: Application) =
   chatText.setWrapMode(WrapMode.word)
   chatText.setEditable(false)
   chatText.setCanFocus(false)
+  addProvider(chatText.getStyleContext, cssProvider,
+              STYLE_PROVIDER_PRIORITY_USER)
   chatScroller.add(chatText)
 
   box.packStart(chatScroller, true, true, 0)
@@ -101,11 +129,15 @@ proc appActivate(app: Application) =
   let inputText = newEntry()
   inputText.addEvents(cast[EventMask](EventFlag.buttonRelease))
   inputText.connect("activate", onSendMessage)
+  addProvider(inputText.getStyleContext, cssProvider,
+              STYLE_PROVIDER_PRIORITY_USER)
 
   boxInput.packStart(inputText, true, true, 0)
 
   let inputButton = newButton("Send")
   inputButton.connect("clicked", onSendMessage, inputText)
+  addProvider(inputButton.getStyleContext, cssProvider,
+              STYLE_PROVIDER_PRIORITY_USER)
   boxInput.packStart(inputButton, false, false, 0)
 
   box.packStart(boxInput, false, false, 0)
