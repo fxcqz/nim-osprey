@@ -54,8 +54,10 @@ proc updateChat(w: TextView): bool =
 
 
 proc sendMessage(w: Entry) =
-  sendChan.send(w.getText())
-  w.setText("")
+  let msg = w.getText()
+  if msg.len > 0:
+    sendChan.send(w.getText())
+    w.setText("")
 
 proc onSendMessage(b: Button; w: Entry) = sendMessage(w)
 
