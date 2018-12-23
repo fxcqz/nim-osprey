@@ -75,7 +75,9 @@ proc appActivate(app: Application) =
   spawn initConnection()
 
   let cssProvider = newCssProvider()
-  discard cssProvider.loadFromData("")
+  discard cssProvider.loadFromData("""
+    button { font-size: 20pt; font-weight: bold }
+  """)
 
   let window = newApplicationWindow(app)
   window.title = "Osprey Client"
@@ -106,15 +108,14 @@ proc appActivate(app: Application) =
   let inputText = newEntry()
   inputText.addEvents(cast[EventMask](EventFlag.buttonRelease))
   inputText.connect("activate", onSendMessage)
-  addProvider(inputText.getStyleContext, cssProvider,
-              STYLE_PROVIDER_PRIORITY_USER)
 
   boxInput.packStart(inputText, true, true, 0)
 
-  let inputButton = newButton("Send")
+  let inputButton = newButton("⇪")
   inputButton.connect("clicked", onSendMessage, inputText)
   addProvider(inputButton.getStyleContext, cssProvider,
               STYLE_PROVIDER_PRIORITY_USER)
+
   boxInput.packStart(inputButton, false, false, 0)
 
   box.packStart(boxInput, false, false, 0)
