@@ -76,6 +76,7 @@ proc extractMessages*(self: MatrixClient; data: JsonNode): seq[Message] {.raises
     discard
 
 proc messagesToLines*(messages: seq[Message]): string {.raises: [].} =
+  # TODO think about how this works now we use labels
   for message in messages:
     result &= "<" & message.sender & "> " & message.body & "\n"
   result.strip(chars = {'\n'})

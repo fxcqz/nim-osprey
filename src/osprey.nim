@@ -41,14 +41,18 @@ proc initConnection =
     sleep(0)
 
 
-proc updateChat(w: TextView): bool =
+var chatRowCount = 0
+
+proc updateChat(chatGrid: Grid): bool =
   let (res, msg) = chan.tryRecv()
   if res:
-    # TODO this is super inefficient, and we might not want to use a
-    # TextView anyway
-    let buf = w.getBuffer()
-    textChatData &= msg & "\n"
-    buf.setText(textChatData, textChatData.len)
+    # TODO make a proc for a more elaborate layout
+    let msgLabel = newLabel(msg)
+    msgLabel.setSelectable(true)
+    msgLabel.setXAlign(0)
+    chatGrid.attach(msgLabel, 0, chatRowCount, 1, 1)
+    chatRowCount.inc
+    showAll(chatGrid)
 
   return SOURCE_CONTINUE
 
@@ -68,29 +72,7 @@ proc appActivate(app: Application) =
   spawn initConnection()
 
   let cssProvider = newCssProvider()
-  discard cssProvider.loadFromData("""
-    window { background-color: #111111; color: #ffffff }
-    label { font-size: 18pt; padding-left: .5em; color: orange }
-    textview.view text {
-      background-color: #111111;
-      color: #EAEAEA;
-      font-size: 12pt;
-    }
-    entry {
-      padding: 5px;
-      background-color: #111111;
-      border: 1px #333333 solid;
-      color: #EAEAEA;
-    }
-    button {
-      background-image: none;
-      border-image: none;
-      padding: 5px;
-      background-color: #111111;
-      border: 0;
-      color: #EAEAEA;
-    }
-  """)
+  discard cssProvider.loadFromData("")
 
   let window = newApplicationWindow(app)
   window.title = "Osprey Client"
@@ -99,31 +81,21 @@ proc appActivate(app: Application) =
               STYLE_PROVIDER_PRIORITY_USER)
 
   # main layout box
-  let box = newBox(Orientation.vertical, 10)
+  let box = newBox(Orientation.vertical, 0)
 
-  # header
-  let roomTitle = newLabel("Sett")
-  roomTitle.setXalign(0)
-
-  # header css
-  addProvider(roomTitle.getStyleContext, cssProvider,
-              STYLE_PROVIDER_PRIORITY_USER)
-
-  box.packStart(roomTitle, false, false, 0)
-  # end header
-
+  let notebook = newNotebook()
   # chat box
+  # TODO make sure the scroller always sticks to the bottom
   let chatScroller = newScrolledWindow(nil, nil)
 
-  let chatText = newTextView()
-  chatText.setWrapMode(WrapMode.word)
-  chatText.setEditable(false)
-  chatText.setCanFocus(false)
-  addProvider(chatText.getStyleContext, cssProvider,
-              STYLE_PROVIDER_PRIORITY_USER)
+  let chatText = newGrid()
+  discard timeoutAdd(1000, updateChat, chatText)
   chatScroller.add(chatText)
 
-  box.packStart(chatScroller, true, true, 0)
+  # TODO should probably do something with the page id
+  discard notebook.appendPage(chatScroller, newLabel("sett"))
+
+  box.packStart(notebook, true, true, 0)
 
   # text entry
   let boxInput = newBox(Orientation.horizontal, 0)
@@ -143,8 +115,6 @@ proc appActivate(app: Application) =
   boxInput.packStart(inputButton, false, false, 0)
 
   box.packStart(boxInput, false, false, 0)
-
-  discard timeoutAdd(1000, updateChat, chatText)
 
   window.add(box)
   showAll(window)
