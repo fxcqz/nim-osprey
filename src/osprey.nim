@@ -25,7 +25,7 @@ proc initConnection =
   connection.join()
   let initialData = connection.sync()
   let initialMessages = connection.extractMessages(initialData)
-  chan.send(messagesToLines(initialMessages))
+  chan.send(connection.messagesToLines(initialMessages))
 
   while true:
     # send msgs on the chan (prioritise this over receiving)
@@ -38,7 +38,7 @@ proc initConnection =
     let data = connection.sync()
     let messages = connection.extractMessages(data)
     if messages.len > 0:
-      chan.send(messagesToLines(messages))
+      chan.send(connection.messagesToLines(messages))
 
     sleep(0)
 

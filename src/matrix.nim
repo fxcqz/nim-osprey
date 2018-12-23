@@ -29,6 +29,7 @@ type
     roomID*: string
     nextBatch: string
     txID: int
+    displayNames: TableRef[string, string]
 
   Message = tuple[
     body: string; sender: string; eventID: string;
@@ -57,7 +58,8 @@ proc newMatrixClient*(jconfig: JsonNode): MatrixClient {.raises: [].} =
     client.headers = newHttpHeaders({"Content-Type": "application/json"})
 
     let config = newMatrixConfig(jconfig)
-    return MatrixClient(client: client, config: config)
+    return MatrixClient(client: client, config: config,
+                        displayNames: newTable[string, string]())
   except:
     try:
       fatal("Could not load the client config")
@@ -84,12 +86,6 @@ proc extractMessages*(self: MatrixClient; data: JsonNode): seq[Message] {.raises
           ))
   except KeyError:
     discard
-
-proc messagesToLines*(messages: seq[Message]): string {.raises: [].} =
-  # TODO think about how this works now we use labels
-  for message in messages:
-    result &= message.timestamp & " <" & message.sender & "> " & message.body & "\n"
-  result.strip(chars = {'\n'})
 
 proc makeParams(params: Option[ParamT]): string =
   if params.isNone:
@@ -229,3 +225,24 @@ proc sendMessage*(self: var MatrixClient; message: string;
   }
   discard self.PUT(&"rooms/{self.roomID}/send/m.room.message/{self.txID}", data)
   self.txID += 1
+
+proc getDisplayName*(self: var MatrixClient; userID: string): string {.raises: [].} =
+  # TODO this needs to invalidate or update when
+  # a user nick change event has been detected
+  try:
+    return self.displayNames[userID]
+  except KeyError:
+    let response: JsonNode = self.GET(&"profile/{userID}/displayname")
+    try:
+      let nick = response["displayname"].getStr
+      self.displayNames[userID] = nick
+      result = nick
+    except KeyError:
+      result = userID
+
+proc messagesToLines*(self: var MatrixClient; messages: seq[Message]): string {.raises: [].} =
+  # TODO think about how this works now we use labels
+  for message in messages:
+    let nick = self.getDisplayName(message.sender)
+    result &= message.timestamp & " <" & nick & "> " & message.body & "\n"
+  result.strip(chars = {'\n'})
