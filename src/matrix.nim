@@ -10,6 +10,7 @@ import tables
 import options
 import strformat
 import strutils
+import times
 import logging
 from uri import encodeUrl
 
@@ -29,7 +30,10 @@ type
     nextBatch: string
     txID: int
 
-  Message = tuple[body: string; sender: string; eventID: string]
+  Message = tuple[
+    body: string; sender: string; eventID: string;
+    timestamp: string;
+  ]
   ParamT = TableRef[string, string]
 
 
@@ -76,6 +80,7 @@ proc extractMessages*(self: MatrixClient; data: JsonNode): seq[Message] {.raises
             e["content"]["body"].getStr,
             e["sender"].getStr,
             e["event_id"].getStr,
+            fromUnix(int(e["origin_server_ts"].getInt / 1000)).format("HH:mm:ss"),
           ))
   except KeyError:
     discard
@@ -83,7 +88,7 @@ proc extractMessages*(self: MatrixClient; data: JsonNode): seq[Message] {.raises
 proc messagesToLines*(messages: seq[Message]): string {.raises: [].} =
   # TODO think about how this works now we use labels
   for message in messages:
-    result &= "<" & message.sender & "> " & message.body & "\n"
+    result &= message.timestamp & " <" & message.sender & "> " & message.body & "\n"
   result.strip(chars = {'\n'})
 
 proc makeParams(params: Option[ParamT]): string =

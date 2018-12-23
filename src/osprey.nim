@@ -52,6 +52,7 @@ proc updateChat(chatGrid: Grid): bool =
     let msgLabel = newLabel(msg)
     msgLabel.setSelectable(true)
     msgLabel.setXAlign(0)
+    msgLabel.setLineWrap(true)
     chatGrid.attach(msgLabel, 0, chatRowCount, 1, 1)
     chatRowCount.inc
     showAll(chatGrid)
