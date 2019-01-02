@@ -76,7 +76,7 @@ proc appActivate(app: Application) =
 
   let cssProvider = newCssProvider()
   discard cssProvider.loadFromData("""
-    button { font-size: 20pt; font-weight: bold }
+    button { font-size: 20pt }
   """)
 
   let window = newApplicationWindow(app)
