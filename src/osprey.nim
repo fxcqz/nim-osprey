@@ -72,7 +72,8 @@ proc onSendMessage(w: Entry) = sendMessage(w)
 
 
 proc appActivate(app: Application) =
-  spawn initConnection()
+  var t: system.Thread[void]
+  t.createThread(initConnection)
 
   let cssProvider = newCssProvider()
   discard cssProvider.loadFromData("""
