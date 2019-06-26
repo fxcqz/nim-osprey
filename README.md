@@ -1,5 +1,7 @@
 # Osprey
 
+## This version is deprecated
+
 Osprey is a chat client for the Matrix protocol.
 
 ## Goals
