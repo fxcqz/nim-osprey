@@ -97,7 +97,7 @@ proc makeParams(params: Option[ParamT]): string =
   result.strip(chars = {'&'})
 
 proc buildUrl(self: MatrixClient; endpoint: string; params: Option[ParamT];
-              version: string): string {.raises: [].} =
+              version: string): string =
   var
     url = &"{self.address}/_matrix/client/{version}/{endpoint}"
     concat = '?'
@@ -118,7 +118,7 @@ proc buildUrl(self: MatrixClient; endpoint: string; params: Option[ParamT];
 
 proc POST(self: MatrixClient; endpoint: string; data: JsonNode;
           params: Option[ParamT] = none(ParamT);
-          version: string = "unstable"): JsonNode {.raises: [].} =
+          version: string = "unstable"): JsonNode =
   let url: string = self.buildUrl(endpoint, params, version)
   try:
     let response: Response = self.client.request(
@@ -135,7 +135,7 @@ proc POST(self: MatrixClient; endpoint: string; data: JsonNode;
 
 proc GET(self: MatrixClient; endpoint: string;
          params: Option[ParamT] = none(ParamT);
-         version: string = "unstable"): JsonNode {.raises: [].} =
+         version: string = "unstable"): JsonNode =
   let url: string = self.buildUrl(endpoint, params, version)
   try:
     let response: Response = self.client.request(url, httpMethod = HttpGet)
@@ -150,7 +150,7 @@ proc GET(self: MatrixClient; endpoint: string;
 
 proc PUT(self: MatrixClient; endpoint: string; data: JsonNode;
          params: Option[ParamT] = none(ParamT);
-         version: string = "unstable"): JsonNode {.raises: [].} =
+         version: string = "unstable"): JsonNode =
   let url: string = self.buildUrl(endpoint, params, version)
   try:
     let response: Response = self.client.request(
@@ -166,7 +166,7 @@ proc PUT(self: MatrixClient; endpoint: string; data: JsonNode;
     return %*{}
 
 
-proc login*(self: var MatrixClient) {.raises: [].} =
+proc login*(self: var MatrixClient) =
   let
     data = %*{
       "user": self.config.username,
@@ -185,7 +185,7 @@ proc login*(self: var MatrixClient) {.raises: [].} =
       discard
     quit(-1)
 
-proc join*(self: var MatrixClient) {.gcsafe, raises: [].} =
+proc join*(self: var MatrixClient) {.gcsafe.} =
   let response: JsonNode = self.POST(&"join/{encodeUrl(self.config.room)}", %*{})
   try:
     self.roomID = response["room_id"].getStr
@@ -196,7 +196,7 @@ proc join*(self: var MatrixClient) {.gcsafe, raises: [].} =
       discard
     quit(-1)
 
-proc sync*(self: var MatrixClient): JsonNode {.raises: [].} =
+proc sync*(self: var MatrixClient): JsonNode =
   var params: Option[ParamT]
   if len(self.nextBatch) > 0:
     params = some[ParamT]({
@@ -216,7 +216,7 @@ proc sync*(self: var MatrixClient): JsonNode {.raises: [].} =
   return response
 
 proc sendMessage*(self: var MatrixClient; message: string;
-                  mType: string = "m.text") {.raises: [].} =
+                  mType: string = "m.text") =
   # TODO this proc needs to be changed for anything other that
   # plain text messages
   let data = %*{
@@ -226,7 +226,7 @@ proc sendMessage*(self: var MatrixClient; message: string;
   discard self.PUT(&"rooms/{self.roomID}/send/m.room.message/{self.txID}", data)
   self.txID += 1
 
-proc getDisplayName*(self: var MatrixClient; userID: string): string {.raises: [].} =
+proc getDisplayName*(self: var MatrixClient; userID: string): string =
   # TODO this needs to invalidate or update when
   # a user nick change event has been detected
   try:
@@ -240,7 +240,7 @@ proc getDisplayName*(self: var MatrixClient; userID: string): string {.raises: [
     except KeyError:
       result = userID
 
-proc messagesToLines*(self: var MatrixClient; messages: seq[Message]): string {.raises: [].} =
+proc messagesToLines*(self: var MatrixClient; messages: seq[Message]): string =
   # TODO think about how this works now we use labels
   for message in messages:
     let nick = self.getDisplayName(message.sender)

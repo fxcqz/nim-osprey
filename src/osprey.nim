@@ -59,6 +59,11 @@ proc updateChat(chatGrid: Grid): bool =
 
   return SOURCE_CONTINUE
 
+proc updateScroll(scroller: ScrolledWindow): bool =
+  let adj = scroller.getVadjustment()
+  adj.setValue(adj.getUpper)
+  return SOURCE_CONTINUE
+
 
 proc sendMessage(w: Entry) =
   let msg = w.getText()
@@ -91,11 +96,12 @@ proc appActivate(app: Application) =
 
   let notebook = newNotebook()
   # chat box
-  # TODO make sure the scroller always sticks to the bottom
   let chatScroller = newScrolledWindow(nil, nil)
 
   let chatText = newGrid()
-  discard timeoutAdd(1000, updateChat, chatText)
+  # TODO consolidate these two functions
+  discard timeoutAdd(500, updateChat, chatText)
+  discard timeoutAdd(501, updateScroll, chatScroller)
   chatScroller.add(chatText)
 
   # TODO should probably do something with the page id

@@ -11,7 +11,7 @@ bin           = @["osprey"]
 # Dependencies
 
 requires "nim >= 0.19.0"
-requires "gintro"
+requires "gintro >= 0.5.0"
 
 
 task run, "Run the program":
